@@ -114,12 +114,21 @@ namespace blogapijlmv2.Services
             return _context.UserInfo;
         }
 
+        //GetAllUsersDataByUsername
+        public UserModel GetAllUserDataByUsername(string username)
+        {
+            return _context.UserInfo.FirstOrDefault(user => user.Username == username);
+        }
         public IActionResult Login(LoginDTO user)
         {
             IActionResult result = Unauthorized();
             //If the user exists
             if (DoesUserExist(user.Username))
             {
+                UserModel foundUser = GetAllUserDataByUsername(user.Username);
+                if(verifyUserPassword(user.Password, foundUser.Hash, foundUser.Salt))
+                {
+                    
                 //Create a secret key used to sing the JTW token
                 //This should be store securely (not hard coded in produciton)
                 var secretKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes("supersupersupersuperdupersecurekey@34456789"));
@@ -141,7 +150,7 @@ namespace blogapijlmv2.Services
 
                 //Return the token as JSON to the client
                 result = Ok(new {Token = tokenString});
-
+                }
             }
             //Return either the token (if user exists) or Unauthorizd (if user does not exist)
             return result;
@@ -150,6 +159,46 @@ namespace blogapijlmv2.Services
         internal UserIdDTO GetUserIdDTOByUserName(string username)
         {
             throw new NotImplementedException();
+        }
+        //helper function to help us find a user
+        public UserModel GetUserByUsername(string username)
+        {
+            return _context.UserInfo.SingleOrDefault(user => user.Username ==  username);
+        }
+
+        public bool DeleteUser(string userToDelete)
+        {
+            UserModel foundUser = GetUserByUsername(userToDelete);
+            bool result = false;
+
+            if(foundUser != null)
+            {
+                foundUser.Username = userToDelete;
+                _context.Remove(foundUser);
+
+                result = _context.SaveChanges() != 0;
+
+            }
+            return result;
+        }
+
+        public UserModel GetUserById(int id)
+        {
+            return _context.UserInfo.SingleOrDefault(user => user.Id == id);
+        }
+
+        public bool UpdateUser(int id, string username)
+        {
+            UserModel foundUser = GetUserById(id);
+            bool result = false;
+            if(foundUser != null)
+            {
+                foundUser.Username = username;
+                _context.Update(foundUser);
+                result = _context.SaveChanges() != 0;
+
+            }
+            return result;
         }
     }
 }

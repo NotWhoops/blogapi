@@ -55,5 +55,19 @@ namespace blogapijlmv2.Controllers
         {
             return _data.Login(user);
         }
+
+        //Delete User
+        [HttpPost("DeleteUser/{userToDelete}")]
+
+        public bool DeleteUser(string userToDelete)
+        {
+           return _data.DeleteUser(userToDelete);
+        }
+
+        //Update User
+        public bool UpdateUser(int id, string username)
+        {
+            return _data.UpdateUser(id, username);
+        }
     }
 }
